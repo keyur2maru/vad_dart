@@ -48,7 +48,7 @@ function startListeningImpl(
   initializeVAD();
 }
 
-function stopListening() {
+function stopListeningImpl() {
   if (vadInstance) {
     vadInstance.pause();
     vadInstance.destroy();
