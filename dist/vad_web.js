@@ -1,4 +1,4 @@
-// vad_dart.js
+// vad_web.js
 
 function logMessage(message) {
   console.log(message);

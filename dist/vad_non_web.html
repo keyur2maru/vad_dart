@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.19/dist/bundle.min.js"></script>
+	<script>
+	let isListening = false;
+	let vadInstance = null;
+
+	function logMessage(message) {
+		console.log(message);
+		window.flutter_inappwebview.callHandler('logMessage', message);
+	}
+
+	function startListeningImpl(positiveSpeechThreshold, negativeSpeechThreshold, preSpeechPadFrames, redemptionFrames, frameSamples, minSpeechFrames, submitUserSpeechOnPause) {
+		if(isListening || vadInstance) return;
+		isListening = true;
+		async function initializeVAD() {
+			try {
+				vadInstance = await vad.MicVAD.new({
+					positiveSpeechThreshold,
+					negativeSpeechThreshold,
+					preSpeechPadFrames,
+					redemptionFrames,
+					frameSamples,
+					minSpeechFrames,
+					submitUserSpeechOnPause,
+					onVADMisfire: () => {
+						window.flutter_inappwebview.callHandler('handleEvent', 'onVADMisfire', '');
+					},
+					onSpeechStart: () => {
+						window.flutter_inappwebview.callHandler('handleEvent', 'onSpeechStart', '');
+					},
+					onSpeechEnd: (audio) => {
+						const audioArray = Array.from(audio);
+						const jsonData = JSON.stringify({
+							audioData: audioArray
+						});
+						window.flutter_inappwebview.callHandler('handleEvent', 'onSpeechEnd', jsonData);
+					}
+				});
+				await vadInstance.start();
+				logMessage('VAD started successfully');
+			} catch (err) {
+				if(err instanceof DOMException) {
+					err = err.toString();
+				}
+				window.flutter_inappwebview.callHandler('handleEvent', 'onError', JSON.stringify({
+					error: err
+				}));
+			}
+		}
+		initializeVAD();
+	}
+
+	function stopListening() {
+		if(vadInstance) {
+			vadInstance.pause();
+			vadInstance.destroy();
+			isListening = false;
+			vadInstance = null;
+			logMessage('VAD stopped successfully');
+		} else {
+			window.flutter_inappwebview.callHandler('handleEvent', 'onError', JSON.stringify({
+				error: 'VAD instance is not initialized'
+			}));
+		}
+	}
+
+	function isListeningNow() {
+		return isListening;
+	}
+	// Initialize and notify Dart when ready
+	window.addEventListener('load', () => {
+		if(typeof vad === 'undefined') {
+			window.flutter_inappwebview.callHandler('handleEvent', 'onError', JSON.stringify({
+				error: 'VAD library not loaded'
+			}));
+		} else {
+			window.flutter_inappwebview.callHandler('onVadInitialized', true);
+		}
+	});
+	</script>
+</head>
+
+<body>
+</body>
+
+</html>
