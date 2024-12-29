@@ -38,6 +38,9 @@ function startListeningImpl(
         },
         onSpeechEnd: (audio) => {
           onSpeechEndCallback(audio);
+        },
+        onSpeechRealStart: () => {
+          onRealSpeechStartCallback();
         }
       });
       vadInstance.start();
@@ -95,6 +98,14 @@ const onSpeechStartCallback = () => {
     onErrorCallback("executeDartHandler is not a function");
   }
 };
+
+const onRealSpeechStartCallback = () => {
+  if (typeof executeDartHandler === 'function') {
+    executeDartHandler("onRealSpeechStart", "");
+  } else {
+    onErrorCallback("executeDartHandler is not a function");
+  }
+}
 
 const onVADMisfireCallback = () => {
   if (typeof executeDartHandler === 'function') {
