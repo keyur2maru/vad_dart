@@ -14,7 +14,10 @@ function startListeningImpl(
   redemptionFrames,
   frameSamples,
   minSpeechFrames,
-  submitUserSpeechOnPause
+  submitUserSpeechOnPause,
+  model,
+  baseAssetPath,
+  onnxWASMBasePath
 ) {
   if (isListening || vadInstance) return;
 
@@ -30,6 +33,9 @@ function startListeningImpl(
         frameSamples,
         minSpeechFrames,
         submitUserSpeechOnPause,
+        model,
+        baseAssetPath,
+        onnxWASMBasePath,
         onVADMisfire: () => {
           onVADMisfireCallback();
         },
